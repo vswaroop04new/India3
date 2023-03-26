@@ -1,6 +1,6 @@
 import React from 'react'
 import './Login.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { Icon } from '@iconify/react'
 import { useNavigate } from 'react-router-dom'
@@ -10,6 +10,16 @@ export default function Login() {
   const navigate = useNavigate()
   const [metamask, setmetamask] = useState(false)
   const [addressmm, setaddressmm] = useState('')
+  const [loader, setLoader] = useState(false)
+
+  const hideMessage = () => {
+    setTimeout(() => {
+      setLoader(false)
+    }, 10000)
+  }
+  useEffect(() => {
+    hideMessage()
+  }, [loader])
   var [tx, settx] = useState(false)
 
   async function connect() {
@@ -17,6 +27,8 @@ export default function Login() {
       console.log('metamask')
       await window.ethereum.request({ method: 'eth_requestAccounts' })
       setmetamask(true)
+      setLoader(true)
+
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const signer = provider.getSigner()
       console.log(await signer.getAddress())
@@ -31,60 +43,75 @@ export default function Login() {
         settx(false)
       }
       if (tx) {
+        setLoader(false)
+
         localStorage.setItem('address', address)
         navigate('/registrar')
       } else {
+        setLoader(false)
+
         navigate('/verifier')
       }
     } else alert('Install metamask')
   }
   return (
     <div>
-      <div className="section">
-        <div className="container">
-          <div className="row full-height justify-content-center">
-            <div className="col-12 text-center align-self-center py-5">
-              <div className="section pb-5 pt-5 pt-sm-2 text-center">
-                <h6 className="mb-0 pb-3">
-                  <span>Log In </span>
+      {' '}
+      {loader ? (
+        <div class="lds-facebook">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      ) : (
+        <div className="section">
+          <div className="container">
+            <div className="row full-height justify-content-center">
+              <div className="col-12 text-center align-self-center py-5">
+                <div className="section pb-5 pt-5 pt-sm-2 text-center">
+                  <h6 className="mb-0 pb-3">
+                    <span>Log In </span>
 
-                  <span>Welcome</span>
-                </h6>
-                <input
-                  className="checkbox"
-                  type="checkbox"
-                  id="reg-log"
-                  name="reg-log"
-                />
-                <label for="reg-log"></label>
-                <div className="card-3d-wrap mx-auto">
-                  <div className="card-3d-wrapper">
-                    <div className="card-front">
-                      <div className="center-wrap">
-                        <div className="insidecont section text-center">
-                          <button onClick={connect} className="metamask">
-                            Connect With Metamask &nbsp; {'   '}
-                            <Icon icon="logos:metamask-icon" />
-                          </button>{' '}
+                    <span>Welcome</span>
+                  </h6>
+                  <input
+                    className="checkbox"
+                    type="checkbox"
+                    id="reg-log"
+                    name="reg-log"
+                  />
+                  <label for="reg-log"></label>
+                  <div className="card-3d-wrap mx-auto">
+                    <div className="card-3d-wrapper">
+                      <div className="card-front">
+                        <div className="center-wrap">
+                          <div className="insidecont section text-center">
+                            <button onClick={connect} className="metamask">
+                              Connect With Metamask &nbsp; {'   '}
+                              <Icon icon="logos:metamask-icon" />
+                            </button>{' '}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="card-back">
-                      <div className="center-wrap">
-                        <div className="cblan section text-center">
-                          <h4 className="mb-4 pb-3">Welcome To India3</h4>
-                          &nbsp;
-                          <p>
-                            India3 is a decentralized platform where we can
-                            verify the demographic data of a person. This system
-                            uses decentralized technology such as blockchain to
-                            ensure the accuracy and validity of demographic
-                            data, such as name, age, gender, and location
-                          </p>
-                          &nbsp;
-                          <p className="">
-                            Please Login with your Metamask Account to continue
-                          </p>
+                      <div className="card-back">
+                        <div className="center-wrap">
+                          <div className="cblan section text-center">
+                            <h4 className="mb-4 pb-3">Welcome To India3</h4>
+                            &nbsp;
+                            <p>
+                              India3 is a decentralized platform where we can
+                              verify the demographic data of a person. This
+                              system uses decentralized technology such as
+                              blockchain to ensure the accuracy and validity of
+                              demographic data, such as name, age, gender, and
+                              location
+                            </p>
+                            &nbsp;
+                            <p className="">
+                              Please Login with your Metamask Account to
+                              continue
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -94,7 +121,7 @@ export default function Login() {
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

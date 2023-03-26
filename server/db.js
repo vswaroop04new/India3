@@ -219,8 +219,106 @@ const Verify = async (req, res) => {
   }
 }
 
+const addTodb2 = async (req, res) => {
+  const { address } = req.body
+  contract
+    .getManagerStatus(address)
+    .then(async (isManager) => {
+      if (isManager) {
+        const { adhaarNum, pin, name, city, dob } = req.body
+        const id = await addAndHash(adhaarNum, pin)
+        const demohash = await concatenateAndHash(name, city, dob)
+
+        const response = await db.collection('Pan').create([id, demohash])
+        res.status(201).json({
+          success: true,
+          response: response,
+          id: id,
+          demohash: demohash,
+        })
+      } else {
+        res.status(401).json({
+          success: false,
+          error: 'You are not a registered manager',
+        })
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        message: 'May be You are not a registered manager',
+      })
+    })
+}
+
+const Verify2 = async (req, res) => {
+  try {
+    console.log(req.body)
+    const idtocheck = await addAndHash(req.body.adhaarNum, req.body.pin)
+    const demohashtocheck = await concatenateAndHash(
+      req.body.name,
+      req.body.city,
+      req.body.dob,
+    )
+    const query = `
+{uidVerifies(first: 10) {sender Upin hash }}
+`
+
+    const apiUrl =
+      'https://api.thegraph.com/subgraphs/name/r4j4t-singh/india3-v4'
+
+    axios
+      .post(apiUrl, {
+        query,
+      })
+      .then((response) => {
+        const data = response.data.data.uidVerifies
+        let found = false
+        data.forEach(async (item) => {
+          console.log(item.sender, item.hash, item.Upin)
+          if (
+            item.sender === req.body.sender &&
+            !found &&
+            item.hash === demohashtocheck &&
+            item.Upin === idtocheck
+          ) {
+            console.log('sender matched')
+            found = true
+
+            const records = await collectionReference.get()
+            console.log(records)
+
+            records.data.forEach(function (obj) {
+              if (
+                obj.data.id === idtocheck &&
+                obj.data.demohash === demohashtocheck
+              ) {
+                console.log('found')
+                res.json({
+                  success: true,
+                  data: 'Verified',
+                })
+              }
+            })
+          }
+        })
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    })
+  }
+}
+
 router.route('/upload').post(addTodb)
 router.route('/verify').post(Verify)
+router.route('/upload2').post(addTodb2)
+router.route('/verify2').post(Verify2)
 
 router.route('/getdetails').get(listRecords)
 
