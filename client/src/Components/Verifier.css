@@ -84,3 +84,102 @@ h2 {
   font-weight: 700;
   border: 0.35rem solid;
 }
+
+/* Spinner elipses */
+
+.loader--ellipsis {
+  display: inline-block;
+  position: relative;
+  height: 64px;
+  width: 64px;
+}
+
+.loader--ellipsis div {
+  position: absolute;
+  top: 27px;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+  border-radius: 50%;
+  height: 11px;
+  width: 11px;
+}
+
+.loader--ellipsis div:nth-child(1) {
+  left: 6px;
+  animation: loader--ellipsis1 0.6s infinite;
+}
+
+.loader--ellipsis div:nth-child(2) {
+  left: 6px;
+  animation: loader--ellipsis2 0.6s infinite;
+}
+
+.loader--ellipsis div:nth-child(3) {
+  left: 26px;
+  animation: loader--ellipsis2 0.6s infinite;
+}
+
+.loader--ellipsis div:nth-child(4) {
+  left: 45px;
+  animation: loader--ellipsis3 0.6s infinite;
+}
+
+@keyframes loader--ellipsis1 {
+  0% {
+    transform: scale(0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes loader--ellipsis3 {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(0);
+  }
+}
+
+@keyframes loader--ellipsis2 {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  100% {
+    transform: translate(19px, 0);
+  }
+}
+
+select {
+  padding: 0.5rem; /* Add some padding to the select element */
+  font-size: 1rem; /* Set the font size */
+  line-height: 1.5; /* Set the line height */
+  width: 400px; /* Set the width to fill the parent container */
+  max-width: 20rem; /* Set a maximum width */
+  border: 1px solid #ccc; /* Add a border */
+  border-radius: 0.25rem; /* Add some border radius */
+  background-color: #fff; /* Set the background color */
+  appearance: none; /* Remove the default appearance */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23424242"><path d="M7 10l5 5 5-5z"/></svg>'); /* Add an arrow icon */
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  cursor: pointer;
+}
+
+option {
+  padding: 0.5rem; /* Add some padding */
+  font-size: 1rem; /* Set the font size */
+  line-height: 1.5; /* Set the line height */
+  background-color: #fff; /* Set the background color */
+  color: #424242; /* Set the text color */
+  border-bottom: 1px solid #ccc; /* Add a border */
+}
+
+/* Style the hover state of the options */
+option:hover {
+  background-color: #f0f0f0; /* Set the background color */
+  cursor: pointer;
+}

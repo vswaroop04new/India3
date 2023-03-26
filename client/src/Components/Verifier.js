@@ -7,6 +7,11 @@ import './Verifier.css'
 const host = 'http://localhost:3000'
 
 function App2() {
+  const [selectedValue, setSelectedValue] = useState('default')
+
+  function handleChange(event) {
+    setSelectedValue(event.target.value)
+  }
   const provider = new ethers.providers.Web3Provider(window.ethereum)
   const signer = provider.getSigner()
   const Uid = new ethers.Contract(address, abi, signer)
@@ -75,7 +80,7 @@ function App2() {
     console.log(sender)
     try {
       await axios
-        .post('http://localhost:3000/admin/verify', {
+        .post('http://localhost:3000/admin/upload', {
           sender,
           adhaarNum,
           pin,
@@ -98,6 +103,11 @@ function App2() {
 
   return (
     <div className="verifier">
+      <div class="col-4">
+        <div class="cell"></div>
+
+        <h2 class="loader--title">Verifier Dashboard</h2>
+      </div>
       <article className="cta">
         <div className="cta__text-column">
           <h3 className="balance">Balance</h3>
@@ -119,85 +129,98 @@ function App2() {
       <label> </label>
 
       <br />
-      <div className="section">
-        <div className="container">
-          <div className="row full-height justify-content-center">
-            <div className="col-12 text-center align-self-center py-5">
-              <div className="section pb-5 pt-5 pt-sm-2 text-center">
-                <div className="card-3d-wrap2 mx-auto">
-                  <div className="card-3d-wrapper">
-                    <div className="card-front">
-                      <div className="center-wrap">
-                        <h4>Enter the Details to Verify</h4>
-                        <br />
-                        <div className="insidecont section text-center">
-                          <div class="form-group">
-                            UID
-                            <input
-                              type="email"
-                              name="logemail"
-                              class="form-style"
-                              placeholder="Uid"
-                              id="logemail"
-                              autocomplete="off"
-                              onChange={(e) => setAdhaarNum(e.target.value)}
-                            />
-                            <i class="input-icon uil uil-at"></i>
+      <div>
+        <select value={selectedValue} onChange={handleChange}>
+          <option value="Verify Demographic Data">
+            Choose an option to Verify
+          </option>
+          <option value="Verify Demographic Data">
+            Verify Demographic Data{' '}
+          </option>
+          <option value="option2">Verify 2 </option>
+        </select>
+        {selectedValue === 'Verify Demographic Data' && (
+          <div className="section">
+            <div className="container">
+              <div className="row full-height justify-content-center">
+                <div className="col-12 text-center align-self-center py-5">
+                  <div className="section pb-5 pt-5 pt-sm-2 text-center">
+                    <div className="card-3d-wrap2 mx-auto">
+                      <div className="card-3d-wrapper">
+                        <div className="card-front2">
+                          <div className="center-wrap">
+                            <h4>Enter the Details to Verify</h4>
+                            <br />
+                            <div className="insidecont section text-center">
+                              <div class="form-group">
+                                UID
+                                <input
+                                  type="email"
+                                  name="logemail"
+                                  class="form-style"
+                                  placeholder="Uid"
+                                  id="logemail"
+                                  autocomplete="off"
+                                  onChange={(e) => setAdhaarNum(e.target.value)}
+                                />
+                                <i class="input-icon uil uil-at"></i>
+                              </div>
+                              <div class="form-group mt-2">
+                                PIN
+                                <input
+                                  onChange={(e) => setPin(e.target.value)}
+                                  name="logpass"
+                                  class="form-style"
+                                  placeholder="Pin"
+                                  id="logpass"
+                                  autocomplete="off"
+                                />
+                                <i class="input-icon uil uil-lock-alt"></i>
+                              </div>
+                              <div class="form-group mt-2">
+                                Nam
+                                <input
+                                  onChange={(e) => setName(e.target.value)}
+                                  name="logpass"
+                                  class="form-style"
+                                  placeholder="Name"
+                                  id="logpass"
+                                  autocomplete="off"
+                                />
+                                <i class="input-icon uil uil-lock-alt"></i>
+                              </div>
+                              <div class="form-group mt-2">
+                                City
+                                <input
+                                  onChange={(e) => setCity(e.target.value)}
+                                  name="logpass"
+                                  class="form-style"
+                                  placeholder="City"
+                                  id="logpass"
+                                  autocomplete="off"
+                                />
+                                <i class="input-icon uil uil-lock-alt"></i>
+                              </div>
+                              <div class="form-group mt-2">
+                                Dob
+                                <input
+                                  onChange={(e) => setdob(e.target.value)}
+                                  name="logpass"
+                                  class="form-style"
+                                  placeholder="Date of Birth"
+                                  id="logpass"
+                                  autocomplete="off"
+                                />
+                                <i class="input-icon uil uil-lock-alt"></i>
+                              </div>
+                              <br />
+                              <button class="btn mt-4" onClick={verify}>
+                                {' '}
+                                Verify
+                              </button>
+                              <br />
+                            </div>
                           </div>
-                          <div class="form-group mt-2">
-                            PIN
-                            <input
-                              onChange={(e) => setPin(e.target.value)}
-                              name="logpass"
-                              class="form-style"
-                              placeholder="Pin"
-                              id="logpass"
-                              autocomplete="off"
-                            />
-                            <i class="input-icon uil uil-lock-alt"></i>
-                          </div>
-                          <div class="form-group mt-2">
-                            Nam
-                            <input
-                              onChange={(e) => setName(e.target.value)}
-                              name="logpass"
-                              class="form-style"
-                              placeholder="Name"
-                              id="logpass"
-                              autocomplete="off"
-                            />
-                            <i class="input-icon uil uil-lock-alt"></i>
-                          </div>
-                          <div class="form-group mt-2">
-                            City
-                            <input
-                              onChange={(e) => setCity(e.target.value)}
-                              name="logpass"
-                              class="form-style"
-                              placeholder="City"
-                              id="logpass"
-                              autocomplete="off"
-                            />
-                            <i class="input-icon uil uil-lock-alt"></i>
-                          </div>
-                          <div class="form-group mt-2">
-                            Dob
-                            <input
-                              onChange={(e) => setdob(e.target.value)}
-                              name="logpass"
-                              class="form-style"
-                              placeholder="Date of Birth"
-                              id="logpass"
-                              autocomplete="off"
-                            />
-                            <i class="input-icon uil uil-lock-alt"></i>
-                          </div>
-                          <br />
-                          <button class="btn mt-4" onClick={verify}>
-                            {' '}
-                            Verify
-                          </button>
-                          <br />
                         </div>
                       </div>
                     </div>
@@ -206,7 +229,8 @@ function App2() {
               </div>
             </div>
           </div>
-        </div>
+        )}
+        {selectedValue === 'option1' && <div>Option 1 selected</div>}
       </div>
     </div>
   )
