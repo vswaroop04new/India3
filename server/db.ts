@@ -1,12 +1,13 @@
-const { Polybase } = require("@polybase/client");
-const express = require("express");
+import { Polybase } from "@polybase/client";
+import express, { Request, Response } from "express";
+import dotenv from "dotenv";
+import crypto from "crypto";
+import axios from "axios";
+import { ethers } from "ethers";
+
+dotenv.config();
+
 const router = express.Router();
-require("dotenv").config();
-const crypto = require("crypto");
-
-const axios = require("axios");
-
-const { ethers } = require("ethers");
 
 const abi = [
   {
@@ -42,12 +43,14 @@ const abi = [
     type: "function",
   },
 ];
+
 const contractAddress = "0x228cff58a93607d12afecc61e18353a17674f9ce";
-console.log(process.env.PRIVATE_KEY);
+
 const provider = new ethers.providers.JsonRpcProvider(
   "https://eth-goerli.g.alchemy.com/v2/VETlCJVRsg0x1fuFN8xeJnW_uT9BY2iu"
-); // or use your own Ethereum node
-const privateKey = process.env.PRIVATE_KEY; // the private key of the account to use
+);
+
+const privateKey = process.env.PRIVATE_KEY || ""; // the private key of the account to use
 const wallet = new ethers.Wallet(privateKey, provider);
 const contract = new ethers.Contract(contractAddress, abi, wallet);
 
@@ -58,11 +61,10 @@ const db = new Polybase({
 
 const collectionReference = db.collection("User");
 
-const listRecords = async (req, res) => {
+const listRecords = async (req: Request, res: Response) => {
   try {
     const records = await collectionReference.get();
-
-    records.data.forEach(function(obj) {
+    records.data.forEach(function (obj: any) {
       console.log(obj.data.demohash);
       console.log(obj.data.id);
     });
@@ -74,65 +76,43 @@ const listRecords = async (req, res) => {
     console.log(error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error,
     });
   }
 };
 
-const listRecords2 = async (req, res) => {
-  try {
-    const records = await collectionReference.get();
-
-    return records;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-async function addAndHash(adhaarNum, pin) {
-  // Add the two numbers together
+async function addAndHash(adhaarNum: string, pin: string): Promise<string> {
   const result = parseInt(adhaarNum) + parseInt(pin);
-  console.log(typeof adhaarNum, typeof pin, typeof result);
-  // Convert the result to a string and encode it in UTF-8
-
-  // Generate the SHA256 hash of the result string
-  console.log(result.toString());
   const sha256Hash = crypto
     .createHash("sha256")
     .update(result.toString())
     .digest("hex");
   const bytes32Hash = Buffer.from(sha256Hash, "hex");
-
   return "0x" + bytes32Hash.toString("hex");
-
-  // Return the hash
 }
 
-async function concatenateAndHash(name, city, dob) {
-  // Concatenate the strings together
+async function concatenateAndHash(
+  name: string,
+  city: string,
+  dob: string
+): Promise<string> {
   const concatenatedString = name + city + dob;
-
-  // Encode the concatenated string in UTF-8
-
   const sha256Hash = crypto
     .createHash("sha256")
     .update(concatenatedString)
     .digest("hex");
   const bytes32Hash = Buffer.from(sha256Hash, "hex");
-
   return "0x" + bytes32Hash.toString("hex");
 }
 
-const addTodb = async (req, res) => {
-  const { address } = req.body;
+const addTodb = async (req: Request, res: Response) => {
+  const { address, adhaarNum, pin, name, city, dob } = req.body;
   contract
     .getManagerStatus(address)
-    .then(async (isManager) => {
+    .then(async (isManager: boolean) => {
       if (isManager) {
-        const { adhaarNum, pin, name, city, dob } = req.body;
         const id = await addAndHash(adhaarNum, pin);
         const demohash = await concatenateAndHash(name, city, dob);
-
         const response = await db.collection("User").create([id, demohash]);
         res.status(201).json({
           success: true,
@@ -147,7 +127,7 @@ const addTodb = async (req, res) => {
         });
       }
     })
-    .catch((error) => {
+    .catch((error: any) => {
       res.status(500).json({
         success: false,
         error: error.message,
@@ -156,48 +136,35 @@ const addTodb = async (req, res) => {
     });
 };
 
-const Verify = async (req, res) => {
+const Verify = async (req: Request, res: Response) => {
   try {
-    console.log(req.body);
-    const idtocheck = await addAndHash(req.body.adhaarNum, req.body.pin);
-    const demohashtocheck = await concatenateAndHash(
-      req.body.name,
-      req.body.city,
-      req.body.dob
-    );
+    const { adhaarNum, pin, name, city, dob, sender } = req.body;
+    const idtocheck = await addAndHash(adhaarNum, pin);
+    const demohashtocheck = await concatenateAndHash(name, city, dob);
     const query = `
-{uidVerifies(first: 10) {sender Upin hash }}
-`;
-
+      {uidVerifies(first: 10) {sender Upin hash }}
+    `;
     const apiUrl =
       "https://api.thegraph.com/subgraphs/name/r4j4t-singh/india3-v5";
     axios
-      .post(apiUrl, {
-        query,
-      })
-      .then((response) => {
+      .post(apiUrl, { query })
+      .then(async (response) => {
         const data = response.data.data.uidVerifies;
         let found = false;
-        data.forEach(async (item) => {
-          console.log(item.sender, item.hash, item.Upin);
+        data.forEach(async (item: any) => {
           if (
-            item.sender === req.body.sender &&
+            item.sender === sender &&
             !found &&
             item.hash === demohashtocheck &&
             item.Upin === idtocheck
           ) {
-            console.log("sender matched");
             found = true;
-
             const records = await collectionReference.get();
-            console.log(records);
-
-            records.data.forEach(function(obj) {
+            records.data.forEach(function (obj: any) {
               if (
                 obj.data.id === idtocheck &&
                 obj.data.demohash === demohashtocheck
               ) {
-                console.log("found");
                 res.json({
                   success: true,
                   data: "Verified",
@@ -207,27 +174,25 @@ const Verify = async (req, res) => {
           }
         });
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error(error);
       });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error,
     });
   }
 };
 
-const addTodb2 = async (req, res) => {
-  const { address } = req.body;
+const addTodb2 = async (req: Request, res: Response) => {
+  const { address, adhaarNum, pin, name, city, dob } = req.body;
   contract
     .getManagerStatus(address)
-    .then(async (isManager) => {
+    .then(async (isManager: boolean) => {
       if (isManager) {
-        const { adhaarNum, pin, name, city, dob } = req.body;
         const id = await addAndHash(adhaarNum, pin);
         const demohash = await concatenateAndHash(name, city, dob);
-
         const response = await db.collection("Pan").create([id, demohash]);
         res.status(201).json({
           success: true,
@@ -242,7 +207,7 @@ const addTodb2 = async (req, res) => {
         });
       }
     })
-    .catch((error) => {
+    .catch((error: any) => {
       res.status(500).json({
         success: false,
         error: error.message,
@@ -251,49 +216,35 @@ const addTodb2 = async (req, res) => {
     });
 };
 
-const Verify2 = async (req, res) => {
+const Verify2 = async (req: Request, res: Response) => {
   try {
-    console.log(req.body);
-    const idtocheck = await addAndHash(req.body.adhaarNum, req.body.pin);
-    const demohashtocheck = await concatenateAndHash(
-      req.body.name,
-      req.body.city,
-      req.body.dob
-    );
+    const { adhaarNum, pin, name, city, dob, sender } = req.body;
+    const idtocheck = await addAndHash(adhaarNum, pin);
+    const demohashtocheck = await concatenateAndHash(name, city, dob);
     const query = `
-{uidVerifies(first: 10) {sender Upin hash }}
-`;
-
+      {uidVerifies(first: 10) {sender Upin hash }}
+    `;
     const apiUrl =
       "https://api.thegraph.com/subgraphs/name/r4j4t-singh/india3-v4";
-
     axios
-      .post(apiUrl, {
-        query,
-      })
-      .then((response) => {
+      .post(apiUrl, { query })
+      .then(async (response) => {
         const data = response.data.data.uidVerifies;
         let found = false;
-        data.forEach(async (item) => {
-          console.log(item.sender, item.hash, item.Upin);
+        data.forEach(async (item: any) => {
           if (
-            item.sender === req.body.sender &&
+            item.sender === sender &&
             !found &&
             item.hash === demohashtocheck &&
             item.Upin === idtocheck
           ) {
-            console.log("sender matched");
             found = true;
-
             const records = await collectionReference.get();
-            console.log(records);
-
-            records.data.forEach(function(obj) {
+            records.data.forEach(function (obj: any) {
               if (
                 obj.data.id === idtocheck &&
                 obj.data.demohash === demohashtocheck
               ) {
-                console.log("found");
                 res.json({
                   success: true,
                   data: "Verified",
@@ -303,13 +254,13 @@ const Verify2 = async (req, res) => {
           }
         });
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error(error);
       });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error,
     });
   }
 };
@@ -318,7 +269,6 @@ router.route("/upload").post(addTodb);
 router.route("/verify").post(Verify);
 router.route("/upload2").post(addTodb2);
 router.route("/verify2").post(Verify2);
-
 router.route("/getdetails").get(listRecords);
 
-module.exports = router;
+export default router;

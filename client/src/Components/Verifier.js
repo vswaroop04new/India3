@@ -1,98 +1,96 @@
-import React, { useState, useEffect } from 'react'
-import { abi, address } from '../Constant.js'
-import { ethers } from 'ethers'
-import axios from 'axios'
-import './Verifier.css'
-
-const host = 'http://localhost:3000'
+import React, { useState, useEffect } from "react";
+import { abi, address } from "../Constant.js";
+import { ethers } from "ethers";
+import axios from "axios";
+import "./Verifier.css";
 
 function App2() {
-  const [loader, setLoader] = useState(false)
+  const [loader, setLoader] = useState(false);
 
   const hideMessage = () => {
     setTimeout(() => {
-      setLoader(false)
-    }, 30000)
-  }
+      setLoader(false);
+    }, 30000);
+  };
   useEffect(() => {
-    hideMessage()
-  }, [loader])
-  const [selectedValue, setSelectedValue] = useState('default')
+    hideMessage();
+  }, [loader]);
+  const [selectedValue, setSelectedValue] = useState("default");
 
   function handleChange(event) {
-    setSelectedValue(event.target.value)
+    setSelectedValue(event.target.value);
   }
-  const provider = new ethers.providers.Web3Provider(window.ethereum)
-  const signer = provider.getSigner()
-  const Uid = new ethers.Contract(address, abi, signer)
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  const Uid = new ethers.Contract(address, abi, signer);
 
-  const [amt, setAmt] = useState(0)
-  const [reciept, setreciept] = useState(0)
+  const [amt, setAmt] = useState(0);
+  const [reciept, setreciept] = useState(0);
 
-  const [balance, setBalance] = useState(0)
+  const [balance, setBalance] = useState(0);
   // uint256 adhaarNum, uint256 pin,string memory name, string memory city, string memory dob
-  const [adhaarNum, setAdhaarNum] = useState(0)
-  const [pin, setPin] = useState(0)
-  const [name, setName] = useState('')
-  const [city, setCity] = useState('')
-  const [dob, setdob] = useState('')
+  const [adhaarNum, setAdhaarNum] = useState(0);
+  const [pin, setPin] = useState(0);
+  const [name, setName] = useState("");
+  const [city, setCity] = useState("");
+  const [dob, setdob] = useState("");
 
   async function addbalance() {
     // console.log(Uid);
     const accounts = await window.ethereum.request({
-      method: 'eth_requestAccounts',
-    })
-    const account = accounts[0]
-    console.log(account)
-    const tx = await Uid.addBalance({ value: ethers.utils.parseEther(amt) })
-    console.log(tx)
-    const receipt = await tx.wait(6)
-    console.log(receipt)
-    setreciept('1')
+      method: "eth_requestAccounts",
+    });
+    const account = accounts[0];
+    console.log(account);
+    const tx = await Uid.addBalance({ value: ethers.utils.parseEther(amt) });
+    console.log(tx);
+    const receipt = await tx.wait(6);
+    console.log(receipt);
+    setreciept("1");
   }
   useEffect(() => {
     async function getbalance() {
       // console.log(Uid);
       const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      })
-      const account = accounts[0]
-      console.log(account)
+        method: "eth_requestAccounts",
+      });
+      const account = accounts[0];
+      console.log(account);
       // get account balance
-      const tx = await Uid.getBalance(account)
+      const tx = await Uid.getBalance(account);
       // convert into ether
-      const etherBalance = ethers.utils.formatEther(tx.toString())
-      console.log(etherBalance)
-      setBalance(etherBalance)
+      const etherBalance = ethers.utils.formatEther(tx.toString());
+      console.log(etherBalance);
+      setBalance(etherBalance);
     }
-    getbalance()
-  }, [reciept])
+    getbalance();
+  }, [reciept]);
 
   async function verify() {
-    setLoader(true)
+    setLoader(true);
 
     const accounts = await window.ethereum.request({
-      method: 'eth_requestAccounts',
-    })
+      method: "eth_requestAccounts",
+    });
 
-    const account = accounts[0]
-    console.log(adhaarNum, pin, name, city, dob)
-    const tx = await Uid.verify(adhaarNum, pin, name, city, dob)
-    console.log(tx)
-    const receipt = await tx.wait(1)
-    console.log(receipt)
-    const senderU = receipt.events[0].args.sender
-    const sender = senderU.toLowerCase()
-    console.log(sender)
-    const Upin = receipt.events[0].args.Upin
-    console.log(Upin)
-    const hash = receipt.events[0].args.hash
-    console.log(hash)
+    const account = accounts[0];
+    console.log(adhaarNum, pin, name, city, dob);
+    const tx = await Uid.verify(adhaarNum, pin, name, city, dob);
+    console.log(tx);
+    const receipt = await tx.wait(1);
+    console.log(receipt);
+    const senderU = receipt.events[0].args.sender;
+    const sender = senderU.toLowerCase();
+    console.log(sender);
+    const Upin = receipt.events[0].args.Upin;
+    console.log(Upin);
+    const hash = receipt.events[0].args.hash;
+    console.log(hash);
 
-    console.log(sender)
+    console.log(sender);
     try {
       await axios
-        .post('http://localhost:3000/admin/verify', {
+        .post(`${process.env.REACT_APP_SERVER_URL}/admin/verify`, {
           sender,
           adhaarNum,
           pin,
@@ -102,51 +100,51 @@ function App2() {
         })
         .then((response) => {
           // Handle success
-          console.log(response)
+          console.log(response);
           if (response.data.success) {
-            setLoader(false)
-            alert('Verified Successfully')
+            setLoader(false);
+            alert("Verified Successfully");
           } else {
-            setLoader(false)
-            alert(`Data not Verified because ${response.data.error}`)
+            setLoader(false);
+            alert(`Data not Verified because ${response.data.error}`);
           }
         })
         .catch((error) => {
           // Handle error
-          console.error(error)
-          setLoader(false)
-        })
+          console.error(error);
+          setLoader(false);
+        });
     } catch (error) {
-      console.log(error)
-      setLoader(false)
+      console.log(error);
+      setLoader(false);
     }
   }
 
   async function verify2() {
-    setLoader(true)
+    setLoader(true);
 
     const accounts = await window.ethereum.request({
-      method: 'eth_requestAccounts',
-    })
+      method: "eth_requestAccounts",
+    });
 
-    const account = accounts[0]
-    console.log(adhaarNum, pin, name, city, dob)
-    const tx = await Uid.verify(adhaarNum, pin, name, city, dob)
-    console.log(tx)
-    const receipt = await tx.wait(1)
-    console.log(receipt)
-    const senderU = receipt.events[0].args.sender
-    const sender = senderU.toLowerCase()
-    console.log(sender)
-    const Upin = receipt.events[0].args.Upin
-    console.log(Upin)
-    const hash = receipt.events[0].args.hash
-    console.log(hash)
+    const account = accounts[0];
+    console.log(adhaarNum, pin, name, city, dob);
+    const tx = await Uid.verify(adhaarNum, pin, name, city, dob);
+    console.log(tx);
+    const receipt = await tx.wait(1);
+    console.log(receipt);
+    const senderU = receipt.events[0].args.sender;
+    const sender = senderU.toLowerCase();
+    console.log(sender);
+    const Upin = receipt.events[0].args.Upin;
+    console.log(Upin);
+    const hash = receipt.events[0].args.hash;
+    console.log(hash);
 
-    console.log(sender)
+    console.log(sender);
     try {
       await axios
-        .post('http://localhost:3000/admin/verify2', {
+        .post(`${process.env.REACT_APP_SERVER_URL}/admin/verify2`, {
           sender,
           adhaarNum,
           pin,
@@ -156,23 +154,23 @@ function App2() {
         })
         .then((response) => {
           // Handle success
-          console.log(response)
+          console.log(response);
           if (response.data.success) {
-            setLoader(false)
-            alert('Verified Successfully')
+            setLoader(false);
+            alert("Verified Successfully");
           } else {
-            setLoader(false)
-            alert(`Data not Verified because ${response.data.error}`)
+            setLoader(false);
+            alert(`Data not Verified because ${response.data.error}`);
           }
         })
         .catch((error) => {
           // Handle error
-          console.error(error)
-          setLoader(false)
-        })
+          console.error(error);
+          setLoader(false);
+        });
     } catch (error) {
-      console.log(error)
-      setLoader(false)
+      console.log(error);
+      setLoader(false);
     }
   }
 
@@ -218,13 +216,13 @@ function App2() {
                 Choose an option to Verify
               </option>
               <option value="Verify Demographic Data">
-                Verify Demographic Data{' '}
+                Verify Demographic Data{" "}
               </option>
               <option value="Verify Financial Income">
                 Verify Financial Income
               </option>
             </select>
-            {selectedValue === 'Verify Demographic Data' && (
+            {selectedValue === "Verify Demographic Data" && (
               <div className="section">
                 <div className="container">
                   <div className="row full-height justify-content-center">
@@ -302,7 +300,7 @@ function App2() {
                                   </div>
                                   <br />
                                   <button class="btn mt-4" onClick={verify}>
-                                    {' '}
+                                    {" "}
                                     Verify
                                   </button>
                                   <br />
@@ -317,7 +315,7 @@ function App2() {
                 </div>
               </div>
             )}
-            {selectedValue === 'Verify Financial Income' && (
+            {selectedValue === "Verify Financial Income" && (
               <div className="section">
                 <div className="container">
                   <div className="row full-height justify-content-center">
@@ -395,7 +393,7 @@ function App2() {
                                   </div>
                                   <br />
                                   <button class="btn mt-4" onClick={verify2}>
-                                    {' '}
+                                    {" "}
                                     Verify
                                   </button>
                                   <br />
@@ -414,7 +412,7 @@ function App2() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default App2
+export default App2;

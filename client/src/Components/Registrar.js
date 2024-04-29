@@ -38,7 +38,7 @@ function App2() {
     try {
       setLoader(true)
       await axios
-        .post('http://localhost:3000/admin/upload', {
+        .post(`${process.env.REACT_APP_SERVER_URL}/admin/upload`, {
           address,
           adhaarNum,
           pin,
@@ -48,21 +48,21 @@ function App2() {
         })
         .then((response) => {
           // Handle success
-          console.log(response)
+          console.log(response);
           if (response.data.success) {
-            setLoader(false)
-            alert('Data added to Polybase Succesfully')
+            setLoader(false);
+            alert("Data added to Polybase Succesfully");
           } else {
-            setLoader(false)
-            alert(`Data not added to Polybase because ${response.data.error}`)
+            setLoader(false);
+            alert(`Data not added to Polybase because ${response.data.error}`);
           }
         })
         .catch((error) => {
           // Handle error
-          console.error(error)
-          setLoader(false)
-          alert(`Data not added to Polybase Please Check Logs`)
-        })
+          console.error(error);
+          setLoader(false);
+          alert(`Data not added to Polybase Please Check Logs`);
+        });
     } catch (error) {
       console.log(error)
     }
@@ -73,7 +73,7 @@ function App2() {
       setLoader(true)
 
       await axios
-        .post('http://localhost:3000/admin/upload2', {
+        .post(`${process.env.REACT_APP_SERVER_URL}/admin/upload2`, {
           address,
           adhaarNum,
           pin,
@@ -83,21 +83,21 @@ function App2() {
         })
         .then((response) => {
           // Handle success
-          console.log(response)
+          console.log(response);
           if (response.data.success) {
-            setLoader(false)
-            alert('Data added to Polybase Succesfully')
+            setLoader(false);
+            alert("Data added to Polybase Succesfully");
           } else {
-            setLoader(false)
-            alert(`Data not added to Polybase because ${response.data.error}`)
+            setLoader(false);
+            alert(`Data not added to Polybase because ${response.data.error}`);
           }
         })
         .catch((error) => {
           // Handle error
-          console.error(error)
-          setLoader(false)
-          alert(`Data not added to Polybase Please Check Logs`)
-        })
+          console.error(error);
+          setLoader(false);
+          alert(`Data not added to Polybase Please Check Logs`);
+        });
     } catch (error) {
       console.log(error)
     }
